@@ -334,13 +334,15 @@ st.markdown(
         font-size: 15px !important;
     }
 
-    /* Chat Input & Bottom Container (Fixed for mobile) */
+    /* WhatsApp-style Bottom Bar (Single Unified Input) */
     [data-testid="stBottom"],
     [data-testid="stBottom"] > div {
         background: transparent !important;
     }
 
     [data-testid="stChatInput"] {
+        max-width: calc(100% - 62px) !important;
+        margin-right: auto !important;
         border: 1.5px solid rgba(244, 150, 185, 0.6) !important;
         border-radius: 26px !important;
         background: rgba(255, 255, 255, 0.98) !important;
@@ -361,6 +363,53 @@ st.markdown(
 
     [data-testid="stChatInput"] textarea::placeholder {
         color: #a47590 !important;
+    }
+
+    /* WhatsApp floating circular mic button placed right beside chat input */
+    .wa-mic-dock {
+        position: fixed !important;
+        bottom: 24px !important;
+        right: 14px !important;
+        z-index: 999999 !important;
+    }
+
+    .wa-mic-dock button {
+        width: 48px !important;
+        height: 48px !important;
+        min-height: 48px !important;
+        border-radius: 50% !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 21px !important;
+        background: linear-gradient(135deg, #ec4899 0%, #db2777 100%) !important;
+        color: white !important;
+        border: none !important;
+        box-shadow: 0 4px 16px rgba(219, 39, 119, 0.45) !important;
+        transition: transform 0.15s ease !important;
+    }
+
+    .wa-mic-dock button:hover {
+        transform: scale(1.08) !important;
+        background: linear-gradient(135deg, #f472b6 0%, #be185d 100%) !important;
+    }
+
+    /* Voice recording dock at bottom (replaces text input in voice mode) */
+    .wa-voice-dock-container {
+        position: fixed !important;
+        bottom: 16px !important;
+        left: 12px !important;
+        right: 12px !important;
+        max-width: calc(100% - 24px) !important;
+        z-index: 999999 !important;
+        background: rgba(255, 255, 255, 0.98) !important;
+        border: 1.5px solid rgba(244, 160, 195, 0.6) !important;
+        border-radius: 28px !important;
+        padding: 6px 14px !important;
+        box-shadow: 0 8px 32px rgba(230, 120, 160, 0.22) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
     }
 
     /* Form elements & Selectboxes */
@@ -1079,39 +1128,50 @@ history_area = st.container()
 
 
 # =========================================================
-# 14. VOICE NOTE RECORDER (Clean & Minimal)
+# 14. WHATSAPP-STYLE SINGLE INPUT BAR (NO 2 BOXES)
 # =========================================================
-voice_rec_col, voice_send_col = st.columns([3, 1])
+if "chat_mode" not in st.session_state:
+    st.session_state.chat_mode = "text"
 
-with voice_rec_col:
-    recorded_audio = st.audio_input(
-        "Record your voice note",
-        key="sahaara_voice_recorder",
-        label_visibility="collapsed",
-    )
+def switch_to_voice():
+    st.session_state.chat_mode = "voice"
 
-with voice_send_col:
-    if recorded_audio is not None:
-        if st.button(
-            "🚀 Send",
-            type="primary",
-            use_container_width=True,
-            key="send_recorded_voice_btn",
-        ):
-            raw_audio_bytes = recorded_audio.getvalue()
-            st.session_state.pending_audio = raw_audio_bytes
-            st.rerun()
+def switch_to_text():
+    st.session_state.chat_mode = "text"
 
+if st.session_state.chat_mode == "voice":
+    # Voice Mode: Clean recording bar replaces text box
+    st.markdown('<div class="wa-voice-dock-container">', unsafe_allow_html=True)
+    voice_rec_col, voice_action_col, voice_back_col = st.columns([5, 2, 1])
 
-# =========================================================
-# 15. CHAT TEXT INPUT (At bottom)
-# =========================================================
-user_input = st.chat_input(
-    "Or type your message to Sahaara... 🌸"
-)
+    with voice_rec_col:
+        recorded_audio = st.audio_input(
+            "Record voice note",
+            key="sahaara_voice_recorder",
+            label_visibility="collapsed",
+        )
 
-if user_input and user_input.strip():
-    st.session_state.pending_prompt = user_input.strip()
+    with voice_action_col:
+        if recorded_audio is not None:
+            if st.button("🚀 Send", type="primary", use_container_width=True, key="send_recorded_voice_btn"):
+                st.session_state.pending_audio = recorded_audio.getvalue()
+                st.session_state.chat_mode = "text"
+                st.rerun()
+
+    with voice_back_col:
+        st.button("⌨️", key="btn_back_to_text", on_click=switch_to_text, help="Switch back to typing")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+else:
+    # Text Mode: WhatsApp Chat Input on the left, Circular Mic button on the right
+    user_input = st.chat_input("Message Sahaara... 🌸")
+    if user_input and user_input.strip():
+        st.session_state.pending_prompt = user_input.strip()
+
+    st.markdown('<div class="wa-mic-dock">', unsafe_allow_html=True)
+    st.button("🎙️", key="btn_wa_mic_icon", on_click=switch_to_voice, help="Tap to record a voice message")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # =========================================================
@@ -1485,18 +1545,17 @@ with history_area:
 
 
 # =========================================================
-# 20. FOOTER
-# =========================================================
-st.markdown(
-    """
-    <div class="footer">
-        <strong>Made with 🌸 by Mahdi Nawaz</strong>
-        <br>
-        Sahaara AI is a supportive emotional companion, not a replacement
-        for professional mental-health care or emergency services.
-        <br>
-        Be gentle with yourself. One kind step at a time. 💕
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+if not st.session_state.messages:
+    st.markdown(
+        """
+        <div class="footer">
+            <strong>Made with 🌸 by Mahdi Nawaz</strong>
+            <br>
+            Sahaara AI is a supportive emotional companion, not a replacement
+            for professional mental-health care or emergency services.
+            <br>
+            Be gentle with yourself. One kind step at a time. 💕
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
