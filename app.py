@@ -583,8 +583,23 @@ if "processed_audio_hashes" not in st.session_state:
 if "quote_index" not in st.session_state:
     st.session_state.quote_index = date.today().toordinal() % 8
 
-if "first_visit" not in st.session_state:
-    st.session_state.first_visit = True
+SUPPORT_MODES = [
+    "Let me talk",
+    "Give me a fresh perspective",
+    "Make me laugh",
+    "Share some wisdom",
+    "Help me take a small step",
+    "Islamic reflection (optional)",
+]
+
+if "support_mode_selection" not in st.session_state:
+    st.session_state.support_mode_selection = "Let me talk"
+
+def set_islamic_mode():
+    st.session_state.support_mode_selection = "Islamic reflection (optional)"
+
+def set_general_mode():
+    st.session_state.support_mode_selection = "Let me talk"
 
 
 # =========================================================
@@ -665,17 +680,17 @@ with st.sidebar:
         index=0,
     )
 
+    current_mode_index = (
+        SUPPORT_MODES.index(st.session_state.support_mode_selection)
+        if st.session_state.support_mode_selection in SUPPORT_MODES
+        else 0
+    )
+
     mode = st.selectbox(
         "✨ Choose your support mode",
-        [
-            "Let me talk",
-            "Give me a fresh perspective",
-            "Make me laugh",
-            "Share some wisdom",
-            "Help me take a small step",
-            "Islamic reflection (optional)",
-        ],
-        index=0,
+        SUPPORT_MODES,
+        index=current_mode_index,
+        key="support_mode_selection",
     )
 
     st.divider()
@@ -699,9 +714,24 @@ with st.sidebar:
         - 😂 Light humour when you need a smile
         - 📖 Stories and thoughtful wisdom
         - 🌱 Small, manageable next steps
-        - 🌙 Optional Islamic reflections
         """
     )
+
+    # Clickable Islamic Reflection Corner button
+    if mode == "Islamic reflection (optional)":
+        st.button(
+            "🌸 Back to General Mode",
+            use_container_width=True,
+            key="btn_sidebar_exit_islamic",
+            on_click=set_general_mode,
+        )
+    else:
+        st.button(
+            "🌙 Optional Islamic reflections",
+            use_container_width=True,
+            key="btn_sidebar_enter_islamic",
+            on_click=set_islamic_mode,
+        )
 
     st.divider()
 
@@ -805,6 +835,15 @@ with quote_col1:
 # 9. DEDICATED ISLAMIC REFLECTION CORNER
 # =========================================================
 if mode == "Islamic reflection (optional)":
+    btn_back_col, _ = st.columns([1, 2])
+    with btn_back_col:
+        st.button(
+            "🌸 Return to General Companion Mode",
+            key="btn_main_exit_islamic",
+            on_click=set_general_mode,
+            use_container_width=True,
+        )
+
     st.markdown(
         """
         <div class="islamic-card">
@@ -898,6 +937,15 @@ if mode == "Islamic reflection (optional)":
                         "Distinguish Quran, hadith, scholarly interpretation "
                         "and personal reflection. If uncertain, say so."
                     )
+else:
+    isl_entry_col1, _ = st.columns([1, 2])
+    with isl_entry_col1:
+        st.button(
+            "🌙 Open Islamic Reflection Corner 🤲",
+            key="btn_main_enter_islamic",
+            on_click=set_islamic_mode,
+            use_container_width=True,
+        )
 
 
 # =========================================================
