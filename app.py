@@ -334,12 +334,17 @@ st.markdown(
         font-size: 15px !important;
     }
 
-    /* Chat Input */
+    /* Chat Input & Bottom Container (Fixed for mobile) */
+    [data-testid="stBottom"],
+    [data-testid="stBottom"] > div {
+        background: transparent !important;
+    }
+
     [data-testid="stChatInput"] {
-        border: 1.5px solid rgba(244, 150, 185, 0.55) !important;
+        border: 1.5px solid rgba(244, 150, 185, 0.6) !important;
         border-radius: 26px !important;
-        background: rgba(255, 255, 255, 0.96) !important;
-        box-shadow: 0 8px 30px rgba(230, 120, 160, 0.15) !important;
+        background: rgba(255, 255, 255, 0.98) !important;
+        box-shadow: 0 8px 30px rgba(230, 120, 160, 0.18) !important;
     }
 
     [data-testid="stChatInput"] textarea {
@@ -347,6 +352,11 @@ st.markdown(
         caret-color: #ec4899 !important;
         font-family: 'Plus Jakarta Sans', sans-serif !important;
         font-size: 15.5px !important;
+        background: transparent !important;
+    }
+
+    [data-testid="stChatInput"] button {
+        color: #ec4899 !important;
     }
 
     [data-testid="stChatInput"] textarea::placeholder {
