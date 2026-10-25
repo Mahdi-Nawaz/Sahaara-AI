@@ -1067,48 +1067,8 @@ for index, (label, prompt) in enumerate(activities):
 
 
 # =========================================================
-# 13. VOICE MESSAGE STUDIO (RECORD & SEND VOICE MESSAGES)
-# Works seamlessly on mobile phones and desktop computers
 # =========================================================
-with st.expander("🎙️ **Send a Voice Message to Sahaara** (Tap to record)", expanded=False):
-    st.markdown(
-        """
-        <div style="font-size:14px; color:#6d3d5a; margin-bottom:10px;">
-            Sometimes it's easier to speak than to type. Tap the red mic button,
-            speak your heart out, and tap <strong>Send Voice Note</strong>.
-            Sahaara will listen and reply with care! 🌸
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    recorded_audio = st.audio_input(
-        "Record your voice note",
-        key="sahaara_voice_recorder",
-    )
-
-    if recorded_audio is not None:
-        raw_audio_bytes = recorded_audio.getvalue()
-        audio_hash = hashlib.md5(raw_audio_bytes).hexdigest()
-
-        send_voice_col, _ = st.columns([1, 1])
-        with send_voice_col:
-            if st.button(
-                "🌸 Send Voice Message to Sahaara",
-                type="primary",
-                use_container_width=True,
-                key="send_recorded_voice_btn",
-            ):
-                if audio_hash not in st.session_state.processed_audio_hashes:
-                    st.session_state.processed_audio_hashes.add(audio_hash)
-                    st.session_state.pending_audio = raw_audio_bytes
-                    st.rerun()
-                else:
-                    st.info("This voice message has already been sent. Record another if you'd like! 🌸")
-
-
-# =========================================================
-# 14. CONVERSATION HISTORY AREA
+# 13. CONVERSATION HISTORY AREA
 # =========================================================
 st.markdown(
     '<div class="section-heading">💬 Your conversation with Sahaara</div>',
@@ -1119,10 +1079,49 @@ history_area = st.container()
 
 
 # =========================================================
-# 15. CHAT TEXT INPUT
+# 14. WHATSAPP-STYLE VOICE NOTE RECORDER (Prominent & Always Visible)
+# =========================================================
+st.markdown(
+    """
+    <div style="background: rgba(255, 245, 249, 0.95); border: 1.5px solid rgba(244, 160, 195, 0.6); border-radius: 20px; padding: 14px 18px; margin: 18px 0 10px 0; box-shadow: 0 4px 16px rgba(235, 140, 175, 0.1);">
+        <div style="font-weight: 700; color: #db2777; font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            🎙️ Send a Voice Message (like WhatsApp)
+        </div>
+        <div style="font-size: 13px; color: #784c66; margin-bottom: 8px;">
+            Tap the red mic to record your voice message, listen to preview, then tap <strong>Send Voice Note</strong>:
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+voice_rec_col, voice_send_col = st.columns([3, 1])
+
+with voice_rec_col:
+    recorded_audio = st.audio_input(
+        "Record your voice note",
+        key="sahaara_voice_recorder",
+        label_visibility="collapsed",
+    )
+
+with voice_send_col:
+    if recorded_audio is not None:
+        if st.button(
+            "🚀 Send Voice Note",
+            type="primary",
+            use_container_width=True,
+            key="send_recorded_voice_btn",
+        ):
+            raw_audio_bytes = recorded_audio.getvalue()
+            st.session_state.pending_audio = raw_audio_bytes
+            st.rerun()
+
+
+# =========================================================
+# 15. CHAT TEXT INPUT (At bottom)
 # =========================================================
 user_input = st.chat_input(
-    "Tell Sahaara what's on your mind... 🌸"
+    "Or type your message to Sahaara... 🌸"
 )
 
 if user_input and user_input.strip():
@@ -1376,7 +1375,7 @@ if st.session_state.pending_prompt or st.session_state.pending_audio:
                 # Add user voice message to history with audio
                 st.session_state.messages.append({
                     "role": "user",
-                    "content": f"🎙️ **Voice Note:** *\"{transcription}\"*",
+                    "content": transcription if transcription != "Audio message" else "",
                     "audio": user_audio_bytes,
                 })
 
@@ -1387,7 +1386,7 @@ if st.session_state.pending_prompt or st.session_state.pending_audio:
                 )
                 st.session_state.messages.append({
                     "role": "user",
-                    "content": "🎙️ **Voice Note**",
+                    "content": "",
                     "audio": user_audio_bytes,
                 })
 
@@ -1460,25 +1459,43 @@ with history_area:
         avatar = "🌸" if message["role"] == "user" else "💛"
 
         with st.chat_message(message["role"], avatar=avatar):
-            st.markdown(message["content"])
-
-            # If user attached voice note audio
-            if message["role"] == "user" and message.get("audio"):
-                st.caption("🎧 *Your recorded voice note:*")
-                st.audio(message["audio"], format="audio/wav")
-
-            # If Sahaara assistant has voice response
-            if message["role"] == "assistant":
+            # User message
+            if message["role"] == "user":
                 if message.get("audio"):
-                    st.caption("🎧 *Listen to Sahaara's voice:*")
+                    st.markdown(
+                        """
+                        <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,225,238,0.7); padding:4px 12px; border-radius:20px; font-weight:700; font-size:13px; color:#be185d; margin-bottom:6px;">
+                            🎙️ Voice Message
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                    st.audio(message["audio"], format="audio/wav")
+                    if message.get("content"):
+                        st.markdown(f"*{message['content']}*")
+                else:
+                    st.markdown(message["content"])
+
+            # Sahaara assistant message
+            elif message["role"] == "assistant":
+                if message.get("audio"):
+                    st.markdown(
+                        """
+                        <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,235,245,0.8); padding:4px 12px; border-radius:20px; font-weight:700; font-size:13px; color:#be185d; margin-bottom:6px;">
+                            🎙️ Sahaara's Voice Note
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
                     st.audio(message["audio"], format="audio/mp3")
                 elif voice_responses_enabled:
-                    # Allow user to generate voice if not cached
                     if st.button("🔊 Listen to Sahaara", key=f"gen_voice_{idx}"):
                         audio_res = generate_sahaara_voice(message["content"], language)
                         if audio_res:
                             message["audio"] = audio_res
                             st.rerun()
+
+                st.markdown(message["content"])
 
 
 # =========================================================
