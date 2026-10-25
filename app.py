@@ -1079,22 +1079,8 @@ history_area = st.container()
 
 
 # =========================================================
-# 14. WHATSAPP-STYLE VOICE NOTE RECORDER (Prominent & Always Visible)
+# 14. VOICE NOTE RECORDER (Clean & Minimal)
 # =========================================================
-st.markdown(
-    """
-    <div style="background: rgba(255, 245, 249, 0.95); border: 1.5px solid rgba(244, 160, 195, 0.6); border-radius: 20px; padding: 14px 18px; margin: 18px 0 10px 0; box-shadow: 0 4px 16px rgba(235, 140, 175, 0.1);">
-        <div style="font-weight: 700; color: #db2777; font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-            🎙️ Send a Voice Message (like WhatsApp)
-        </div>
-        <div style="font-size: 13px; color: #784c66; margin-bottom: 8px;">
-            Tap the red mic to record your voice message, listen to preview, then tap <strong>Send Voice Note</strong>:
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
 voice_rec_col, voice_send_col = st.columns([3, 1])
 
 with voice_rec_col:
@@ -1107,7 +1093,7 @@ with voice_rec_col:
 with voice_send_col:
     if recorded_audio is not None:
         if st.button(
-            "🚀 Send Voice Note",
+            "🚀 Send",
             type="primary",
             use_container_width=True,
             key="send_recorded_voice_btn",
