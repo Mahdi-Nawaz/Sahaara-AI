@@ -1,0 +1,18 @@
+# Python & Virtual Environments
+.venv/
+venv/
+ENV/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Streamlit Secrets & Environment variables (NEVER COMMIT)
+.streamlit/secrets.toml
+.env
+.env.*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+*.log
