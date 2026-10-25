@@ -735,6 +735,23 @@ with st.sidebar:
 
     st.divider()
 
+    # Quick AI key setup if secret is not set in Streamlit Cloud
+    has_secret_key = bool(st.secrets.get("GEMINI_API_KEY", "").strip())
+    if not has_secret_key:
+        with st.expander("🔑 AI Key (Quick Connect)", expanded=True):
+            st.caption("Add your Gemini key below to connect immediately:")
+            user_key = st.text_input(
+                "Gemini API Key",
+                type="password",
+                value=st.session_state.get("user_gemini_key", ""),
+                placeholder="Paste key here",
+                key="sidebar_key_input",
+                help="Enter your key here to activate Sahaara immediately in this session.",
+            )
+            if user_key:
+                st.session_state.user_gemini_key = user_key.strip()
+                st.success("Key active! 🌸")
+
     st.markdown("### 🔒 Your privacy")
     st.caption(
         "Avoid sharing passwords, financial details, addresses "
@@ -1287,13 +1304,23 @@ if st.session_state.pending_prompt or st.session_state.pending_audio:
     st.session_state.pending_prompt = None
     st.session_state.pending_audio = None
 
-    api_key = st.secrets.get("GEMINI_API_KEY", "")
+    api_key = (
+        st.session_state.get("user_gemini_key", "").strip()
+        or st.secrets.get("GEMINI_API_KEY", "").strip()
+    )
 
     if not api_key or api_key == "YOUR ACTUAL KEY":
         reply = (
-            "Sahaara is not connected to its AI service yet. "
-            "Please check that your Gemini API key is configured in "
-            "`.streamlit/secrets.toml`."
+            "🌸 **Sahaara needs to connect to its AI service.**\n\n"
+            "To activate Sahaara online:\n\n"
+            "**Permanent Fix (Recommended)**:\n"
+            "1. On your laptop, click the black **`Manage app`** button in the bottom-right corner.\n"
+            "2. Click the three dots (**`⋮`**) ➡️ **Settings** ➡️ **Secrets**.\n"
+            "3. Paste:\n"
+            "```toml\nGEMINI_API_KEY = \"your_gemini_api_key\"\n```\n"
+            "4. Click **Save**.\n\n"
+            "**Instant Fix (This session)**:\n"
+            "Open the sidebar ⬅️ and enter your key under **🔑 AI Key (Quick Connect)**."
         )
         st.session_state.messages.append(
             {"role": "user", "content": prompt or "🎙️ [Voice Note]"}
